@@ -1,0 +1,1085 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TempConverter Pro - Aplikasi Konversi Suhu</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.0/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Font Awesome untuk ikon tambahan -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --accent-color: #f59e0b;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+        }
+
+        .hero-section {
+            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), 
+                        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600"><rect fill="%23667eea" width="1200" height="600"/><path fill="%23764ba2" d="M0,300 C300,100 600,500 900,300 C1050,200 1200,400 1200,300 L1200,600 L0,600 Z"/></svg>');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            min-height: 70vh;
+            display: flex;
+            align-items: center;
+        }
+
+        .card {
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            border: none;
+            border-radius: 15px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+
+        .btn-convert {
+            background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-convert:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border-left: 5px solid var(--primary-color);
+        }
+
+        .temperature-display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .unit-symbol {
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+        }
+
+        .conversion-arrow {
+            font-size: 2rem;
+            color: var(--accent-color);
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1rem;
+        }
+
+        .navbar {
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95) !important;
+        }
+
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 2px solid #e5e7eb;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+        }
+
+        .history-item {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-bottom: 8px;
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .footer {
+            background: linear-gradient(135deg, #1e293b, #334155);
+            color: white;
+        }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .loading-spinner {
+            display: none;
+        }
+
+        .formula-card {
+            background: linear-gradient(135deg, #fef3c7, #fed7aa);
+            border-radius: 10px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light fixed-top">
+        <div class="container">
+            <a class="navbar-brand text-primary" href="#home">
+                <i class="fas fa-thermometer-half me-2"></i>
+                TempConverter Pro
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active fw-bold" href="#home">
+                            <i class="fas fa-home me-1"></i>Home
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#konversi">
+                            <i class="fas fa-calculator me-1"></i>Konversi
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#tentang">
+                            <i class="fas fa-info-circle me-1"></i>Tentang
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#kontak">
+                            <i class="fas fa-envelope me-1"></i>Kontak
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero-section">
+        <div class="container">
+            <div class="row justify-content-center text-center">
+                <div class="col-lg-8">
+                    <div class="pulse-animation">
+                        <i class="fas fa-thermometer-three-quarters display-1 text-warning mb-4"></i>
+                    </div>
+                    <h1 class="display-3 fw-bold mb-4">
+                        Konversi Suhu <span class="text-warning">Profesional</span>
+                    </h1>
+                    <p class="lead fs-4 mb-5">
+                        Aplikasi konversi suhu terpercaya dengan akurasi tinggi. 
+                        Mendukung Celsius, Fahrenheit, dan Kelvin dengan hasil instan!
+                    </p>
+                    <a href="#konversi" class="btn btn-warning btn-lg px-5 py-3 rounded-pill">
+                        <i class="fas fa-rocket me-2"></i>
+                        Mulai Konversi Sekarang
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Konversi Section -->
+    <section id="konversi" class="py-5 bg-light">
+        <div class="container">
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-8 text-center">
+                    <h2 class="display-4 fw-bold text-dark mb-3">
+                        <i class="fas fa-exchange-alt text-primary me-3"></i>
+                        Konverter Suhu
+                    </h2>
+                    <p class="lead text-muted">
+                        Masukkan nilai suhu dan pilih satuan untuk konversi otomatis
+                    </p>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <!-- Form Input -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header gradient-bg text-white">
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-edit me-2"></i>
+                                Input Data Suhu
+                            </h4>
+                        </div>
+                        <div class="card-body p-4">
+                            <form id="temperatureForm">
+                                <!-- Input Nilai Suhu -->
+                                <div class="mb-4">
+                                    <label for="inputTemp" class="form-label fw-bold">
+                                        <i class="fas fa-thermometer-half text-primary me-2"></i>
+                                        Nilai Suhu
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text bg-primary text-white">
+                                            <i class="fas fa-calculator"></i>
+                                        </span>
+                                        <input type="number" 
+                                               id="inputTemp" 
+                                               class="form-control form-control-lg" 
+                                               placeholder="Masukkan nilai suhu..."
+                                               step="0.01" 
+                                               required>
+                                    </div>
+                                    <div class="form-text">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Gunakan titik (.) untuk desimal
+                                    </div>
+                                </div>
+
+                                <!-- Satuan Asal -->
+                                <div class="mb-4">
+                                    <label for="fromUnit" class="form-label fw-bold">
+                                        <i class="fas fa-arrow-up text-success me-2"></i>
+                                        Satuan Asal
+                                    </label>
+                                    <select id="fromUnit" class="form-select form-select-lg">
+                                        <option value="celsius">🌡️ Celsius (°C)</option>
+                                        <option value="fahrenheit">🌡️ Fahrenheit (°F)</option>
+                                        <option value="kelvin">🌡️ Kelvin (K)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Satuan Tujuan -->
+                                <div class="mb-4">
+                                    <label for="toUnit" class="form-label fw-bold">
+                                        <i class="fas fa-arrow-down text-danger me-2"></i>
+                                        Satuan Tujuan
+                                    </label>
+                                    <select id="toUnit" class="form-select form-select-lg">
+                                        <option value="celsius">🌡️ Celsius (°C)</option>
+                                        <option value="fahrenheit" selected>🌡️ Fahrenheit (°F)</option>
+                                        <option value="kelvin">🌡️ Kelvin (K)</option>
+                                    </select>
+                                </div>
+
+                                <!-- Tombol Konversi -->
+                                <button type="submit" class="btn btn-convert text-white w-100 btn-lg">
+                                    <span class="loading-spinner spinner-border spinner-border-sm me-2"></span>
+                                    <i class="fas fa-sync-alt me-2"></i>
+                                    Konversi Suhu Sekarang
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hasil Konversi -->
+                <div class="col-lg-6">
+                    <div class="card h-100">
+                        <div class="card-header bg-success text-white">
+                            <h4 class="card-title mb-0">
+                                <i class="fas fa-chart-line me-2"></i>
+                                Hasil Konversi
+                            </h4>
+                        </div>
+                        <div class="card-body p-4">
+                            <div id="resultSection" class="text-center">
+                                <div class="mb-4">
+                                    <i class="fas fa-thermometer display-1 text-muted"></i>
+                                    <p class="text-muted mt-3">
+                                        Masukkan nilai suhu untuk melihat hasil konversi
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Ringkasan Input -->
+                            <div id="inputSummary" class="mt-4 d-none">
+                                <div class="card result-card">
+                                    <div class="card-body">
+                                        <h6 class="card-title fw-bold text-primary mb-3">
+                                            <i class="fas fa-clipboard-list me-2"></i>
+                                            Ringkasan Input:
+                                        </h6>
+                                        <div class="row g-2">
+                                            <div class="col-12">
+                                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                                    <span class="fw-bold">Nilai Input:</span>
+                                                    <span id="summaryInput" class="badge bg-primary fs-6">-</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                                                    <span class="fw-bold">Dari Satuan:</span>
+                                                    <span id="summaryFrom" class="badge bg-success fs-6">-</span>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="d-flex justify-content-between align-items-center py-2">
+                                                    <span class="fw-bold">Ke Satuan:</span>
+                                                    <span id="summaryTo" class="badge bg-warning fs-6">-</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Riwayat Konversi -->
+                            <div id="historySection" class="mt-4 d-none">
+                                <h6 class="fw-bold text-secondary mb-3">
+                                    <i class="fas fa-history me-2"></i>
+                                    Riwayat Konversi:
+                                </h6>
+                                <div id="historyList" class="overflow-auto" style="max-height: 200px;">
+                                    <!-- History items will be added here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Tentang Section -->
+    <section id="tentang" class="py-5">
+        <div class="container">
+            <div class="row justify-content-center mb-5">
+                <div class="col-lg-8 text-center">
+                    <h2 class="display-4 fw-bold text-white mb-3">
+                        <i class="fas fa-info-circle text-warning me-3"></i>
+                        Tentang Aplikasi
+                    </h2>
+                    <p class="lead text-white">
+                        Pelajari lebih lanjut tentang fitur dan keunggulan aplikasi konversi suhu kami
+                    </p>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body p-4">
+                            <div class="feature-icon bg-primary text-white">
+                                <i class="fas fa-bullseye"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Akurasi Tinggi</h5>
+                            <p class="card-text text-muted">
+                                Menggunakan formula matematika yang presisi dengan tingkat akurasi hingga 2 desimal
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body p-4">
+                            <div class="feature-icon bg-success text-white">
+                                <i class="fas fa-bolt"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Konversi Instan</h5>
+                            <p class="card-text text-muted">
+                                Hasil konversi langsung tersedia tanpa delay, dengan teknologi JavaScript yang optimal
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card text-center h-100">
+                        <div class="card-body p-4">
+                            <div class="feature-icon bg-warning text-white">
+                                <i class="fas fa-mobile-alt"></i>
+                            </div>
+                            <h5 class="card-title fw-bold">Responsif</h5>
+                            <p class="card-text text-muted">
+                                Desain yang responsif dan user-friendly, dapat diakses dari berbagai perangkat
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Formula Section -->
+            <div class="row justify-content-center">
+                <div class="col-lg-10">
+                    <div class="card">
+                        <div class="card-header gradient-bg text-white text-center">
+                            <h4 class="mb-0">
+                                <i class="fas fa-calculator me-2"></i>
+                                Formula Konversi yang Digunakan
+                            </h4>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="formula-card">
+                                        <h6 class="fw-bold text-primary mb-3">
+                                            <i class="fas fa-arrow-right me-2"></i>
+                                            Celsius ↔ Fahrenheit
+                                        </h6>
+                                        <div class="bg-white p-3 rounded">
+                                            <p class="mb-1"><strong>°F = (°C × 9/5) + 32</strong></p>
+                                            <p class="mb-0"><strong>°C = (°F - 32) × 5/9</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="formula-card">
+                                        <h6 class="fw-bold text-success mb-3">
+                                            <i class="fas fa-arrow-right me-2"></i>
+                                            Celsius ↔ Kelvin
+                                        </h6>
+                                        <div class="bg-white p-3 rounded">
+                                            <p class="mb-1"><strong>K = °C + 273.15</strong></p>
+                                            <p class="mb-0"><strong>°C = K - 273.15</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="formula-card">
+                                        <h6 class="fw-bold text-danger mb-3">
+                                            <i class="fas fa-arrow-right me-2"></i>
+                                            Fahrenheit ↔ Kelvin
+                                        </h6>
+                                        <div class="bg-white p-3 rounded">
+                                            <p class="mb-1"><strong>K = (°F - 32) × 5/9 + 273.15</strong></p>
+                                            <p class="mb-0"><strong>°F = (K - 273.15) × 9/5 + 32</strong></p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Kontak Section -->
+    <!-- <section id="kontak" class="py-5 bg-light">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 text-center">
+                    <h2 class="display-4 fw-bold text-dark mb-4">
+                        <i class="fas fa-envelope text-primary me-3"></i>
+                        Hubungi Kami
+                    </h2>
+                    <div class="card">
+                        <div class="card-body p-5">
+                            <p class="lead text-muted mb-4">
+                                Ada pertanyaan atau saran? Jangan ragu untuk menghubungi tim pengembang kami!
+                            </p>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="feature-icon bg-primary text-white me-3" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                            <i class="fas fa-envelope"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h6 class="mb-0 fw-bold">Email</h6>
+                                            <p class="mb-0 text-muted">info@tempconverter.com</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="d-flex align-items-center justify-content-center">
+                                        <div class="feature-icon bg-success text-white me-3" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                        </div>
+                                        <div class="text-start">
+                                            <h6 class="mb-0 fw-bold">Lokasi</h6>
+                                            <p class="mb-0 text-muted">Semarang, Jawa Tengah</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section> -->
+
+    <!-- Footer -->
+    <footer class="footer py-4 text-center">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <p class="mb-2">
+                        <i class="fas fa-thermometer-half me-2"></i>
+                        <strong>TempConverter Pro</strong> - Aplikasi Konversi Suhu Profesional
+                    </p>
+                    <p class="mb-0 text-white-50">
+                        &copy; 2025 Dibuat dengan <i class="fas fa-heart text-danger"></i> untuk kemudahan konversi suhu
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        /**
+         * TEMPERATURE CONVERTER APPLICATION
+         * ================================
+         * Aplikasi konversi suhu menggunakan JavaScript OOP
+         * Mendukung konversi antara Celsius, Fahrenheit, dan Kelvin
+         */
+
+        class TemperatureConverter {
+            constructor() {
+                this.conversionHistory = [];
+                this.maxHistoryItems = 5;
+                this.initializeEventListeners();
+                this.loadSampleData();
+            }
+
+            /**
+             * Inisialisasi event listeners untuk form dan navigasi
+             */
+            initializeEventListeners() {
+                // Form submission
+                document.getElementById('temperatureForm').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.performConversion();
+                });
+
+                // Auto-conversion pada perubahan input
+                document.getElementById('inputTemp').addEventListener('input', 
+                    this.debounce(() => this.autoConvert(), 1000)
+                );
+
+                document.getElementById('fromUnit').addEventListener('change', () => this.autoConvert());
+                document.getElementById('toUnit').addEventListener('change', () => this.autoConvert());
+
+                // Smooth scrolling untuk navigasi
+                this.initializeSmoothScrolling();
+            }
+
+            /**
+             * Inisialisasi smooth scrolling untuk menu navigasi
+             */
+            initializeSmoothScrolling() {
+                document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                    anchor.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        const target = document.querySelector(this.getAttribute('href'));
+                        if (target) {
+                            const navbarHeight = document.querySelector('.navbar').offsetHeight;
+                            const targetPosition = target.offsetTop - navbarHeight - 20;
+                            
+                            window.scrollTo({
+                                top: targetPosition,
+                                behavior: 'smooth'
+                            });
+
+                            // Update active nav item
+                            document.querySelectorAll('.nav-link').forEach(link => 
+                                link.classList.remove('active')
+                            );
+                            this.classList.add('active');
+                        }
+                    });
+                });
+            }
+
+            /**
+             * Load data sampel untuk demonstrasi
+             */
+            loadSampleData() {
+                document.getElementById('inputTemp').value = '25';
+                document.getElementById('fromUnit').value = 'celsius';
+                document.getElementById('toUnit').value = 'fahrenheit';
+            }
+
+            /**
+             * Fungsi debounce untuk menunda eksekusi fungsi
+             */
+            debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            /**
+             * Auto-conversion ketika user mengetik
+             */
+            autoConvert() {
+                const inputValue = document.getElementById('inputTemp').value;
+                if (inputValue && !isNaN(inputValue) && inputValue.trim() !== '') {
+                    this.performConversion(false); // false = tidak menambah ke history
+                }
+            }
+
+            /**
+             * Melakukan konversi suhu utama
+             */
+            performConversion(addToHistory = true) {
+                const inputTemp = parseFloat(document.getElementById('inputTemp').value);
+                const fromUnit = document.getElementById('fromUnit').value;
+                const toUnit = document.getElementById('toUnit').value;
+
+                // Validasi input
+                if (isNaN(inputTemp)) {
+                    this.showError('Mohon masukkan nilai suhu yang valid!');
+                    return;
+                }
+
+                // Validasi khusus untuk Kelvin (tidak boleh negatif)
+                if (fromUnit === 'kelvin' && inputTemp < 0) {
+                    this.showError('Nilai Kelvin tidak boleh negatif (kurang dari 0 K)!');
+                    return;
+                }
+
+                // Validasi untuk Celsius (tidak boleh kurang dari -273.15°C)
+                if (fromUnit === 'celsius' && inputTemp < -273.15) {
+                    this.showError('Nilai Celsius tidak boleh kurang dari -273.15°C (nol absolut)!');
+                    return;
+                }
+
+                try {
+                    // Show loading
+                    this.showLoading(true);
+
+                    // Simulasi delay untuk UX yang lebih baik
+                    setTimeout(() => {
+                        const result = this.convertTemperature(inputTemp, fromUnit, toUnit);
+                        
+                        // Tampilkan hasil
+                        this.displayResult(inputTemp, fromUnit, toUnit, result);
+                        
+                        // Tampilkan ringkasan
+                        this.displayInputSummary(inputTemp, fromUnit, toUnit);
+                        
+                        // Tambah ke history jika diperlukan
+                        if (addToHistory) {
+                            this.addToHistory(inputTemp, fromUnit, toUnit, result);
+                        }
+
+                        this.showLoading(false);
+
+                    }, 500);
+
+                } catch (error) {
+                    this.showError('Terjadi kesalahan dalam konversi: ' + error.message);
+                    this.showLoading(false);
+                }
+            }
+
+            /**
+             * Algoritma konversi suhu utama
+             * Menggunakan Celsius sebagai unit perantara untuk semua konversi
+             */
+            convertTemperature(value, fromUnit, toUnit) {
+                if (fromUnit === toUnit) {
+                    return value; // Tidak perlu konversi
+                }
+
+                // Step 1: Konversi ke Celsius (unit perantara)
+                let celsius;
+                switch(fromUnit) {
+                    case 'celsius':
+                        celsius = value;
+                        break;
+                    case 'fahrenheit':
+                        celsius = (value - 32) * 5/9;
+                        break;
+                    case 'kelvin':
+                        celsius = value - 273.15;
+                        break;
+                    default:
+                        throw new Error('Unit asal tidak valid');
+                }
+
+                // Step 2: Konversi dari Celsius ke unit tujuan
+                let result;
+                switch(toUnit) {
+                    case 'celsius':
+                        result = celsius;
+                        break;
+                    case 'fahrenheit':
+                        result = (celsius * 9/5) + 32;
+                        break;
+                    case 'kelvin':
+                        result = celsius + 273.15;
+                        break;
+                    default:
+                        throw new Error('Unit tujuan tidak valid');
+                }
+
+                return result;
+            }
+
+            /**
+             * Mendapatkan simbol unit
+             */
+            getUnitSymbol(unit) {
+                const symbols = {
+                    'celsius': '°C',
+                    'fahrenheit': '°F',
+                    'kelvin': 'K'
+                };
+                return symbols[unit] || '';
+            }
+
+            /**
+             * Mendapatkan nama unit lengkap
+             */
+            getUnitName(unit) {
+                const names = {
+                    'celsius': 'Celsius',
+                    'fahrenheit': 'Fahrenheit',
+                    'kelvin': 'Kelvin'
+                };
+                return names[unit] || '';
+            }
+
+            /**
+             * Menampilkan hasil konversi dengan animasi
+             */
+            displayResult(inputValue, fromUnit, toUnit, result) {
+                const resultSection = document.getElementById('resultSection');
+                const fromSymbol = this.getUnitSymbol(fromUnit);
+                const toSymbol = this.getUnitSymbol(toUnit);
+                const fromName = this.getUnitName(fromUnit);
+                const toName = this.getUnitName(toUnit);
+
+                // Animasi hasil
+                resultSection.style.opacity = '0';
+                setTimeout(() => {
+                    resultSection.innerHTML = `
+                        <div class="result-display">
+                            <div class="mb-4">
+                                <div class="badge bg-info fs-5 mb-3 px-3 py-2">
+                                    <i class="fas fa-calculator me-2"></i>Hasil Konversi
+                                </div>
+                            </div>
+                            
+                            <div class="conversion-flow mb-4">
+                                <div class="row align-items-center">
+                                    <div class="col-5">
+                                        <div class="card border-primary bg-primary bg-opacity-10">
+                                            <div class="card-body text-center py-3">
+                                                <div class="temperature-display text-primary">
+                                                    ${inputValue}
+                                                </div>
+                                                <div class="unit-symbol">
+                                                    ${fromSymbol}
+                                                </div>
+                                                <div class="small text-muted fw-bold mt-1">
+                                                    ${fromName}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-2 text-center">
+                                        <div class="conversion-arrow">
+                                            <i class="fas fa-arrow-right"></i>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-5">
+                                        <div class="card border-success bg-success">
+                                            <div class="card-body text-center py-3 text-white">
+                                                <div class="temperature-display">
+                                                    ${result.toFixed(2)}
+                                                </div>
+                                                <div class="unit-symbol">
+                                                    ${toSymbol}
+                                                </div>
+                                                <div class="small mt-1 fw-bold">
+                                                    ${toName}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-info border-0 shadow-sm">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>${inputValue}${fromSymbol}</strong> sama dengan 
+                                <strong>${result.toFixed(2)}${toSymbol}</strong>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <small class="text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    Konversi dilakukan pada: ${new Date().toLocaleString('id-ID')}
+                                </small>
+                            </div>
+                        </div>
+                    `;
+                    resultSection.style.opacity = '1';
+                }, 300);
+            }
+
+            /**
+             * Menampilkan ringkasan input
+             */
+            displayInputSummary(inputValue, fromUnit, toUnit) {
+                const summarySection = document.getElementById('inputSummary');
+                const summaryInput = document.getElementById('summaryInput');
+                const summaryFrom = document.getElementById('summaryFrom');
+                const summaryTo = document.getElementById('summaryTo');
+
+                summaryInput.textContent = `${inputValue} ${this.getUnitSymbol(fromUnit)}`;
+                summaryFrom.textContent = this.getUnitName(fromUnit);
+                summaryTo.textContent = this.getUnitName(toUnit);
+
+                summarySection.classList.remove('d-none');
+                
+                // Animate summary appearance
+                summarySection.style.transform = 'translateY(20px)';
+                summarySection.style.opacity = '0';
+                setTimeout(() => {
+                    summarySection.style.transition = 'all 0.3s ease';
+                    summarySection.style.transform = 'translateY(0)';
+                    summarySection.style.opacity = '1';
+                }, 100);
+            }
+
+            /**
+             * Menambah ke riwayat konversi
+             */
+            addToHistory(inputValue, fromUnit, toUnit, result) {
+                const historyItem = {
+                    input: inputValue,
+                    fromUnit: fromUnit,
+                    toUnit: toUnit,
+                    result: result,
+                    timestamp: new Date()
+                };
+
+                this.conversionHistory.unshift(historyItem);
+                
+                // Batasi jumlah history
+                if (this.conversionHistory.length > this.maxHistoryItems) {
+                    this.conversionHistory = this.conversionHistory.slice(0, this.maxHistoryItems);
+                }
+
+                this.displayHistory();
+            }
+
+            /**
+             * Menampilkan riwayat konversi
+             */
+            displayHistory() {
+                const historySection = document.getElementById('historySection');
+                const historyList = document.getElementById('historyList');
+
+                if (this.conversionHistory.length === 0) {
+                    historySection.classList.add('d-none');
+                    return;
+                }
+
+                historySection.classList.remove('d-none');
+                
+                historyList.innerHTML = this.conversionHistory.map((item, index) => `
+                    <div class="history-item fade-in" style="animation-delay: ${index * 0.1}s">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold">${item.input}${this.getUnitSymbol(item.fromUnit)}</span>
+                                <i class="fas fa-arrow-right mx-2 text-primary"></i>
+                                <span class="fw-bold text-success">${item.result.toFixed(2)}${this.getUnitSymbol(item.toUnit)}</span>
+                            </div>
+                            <small class="text-muted">
+                                ${item.timestamp.toLocaleTimeString('id-ID')}
+                            </small>
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            /**
+             * Menampilkan loading state
+             */
+            showLoading(show) {
+                const spinner = document.querySelector('.loading-spinner');
+                const submitBtn = document.querySelector('button[type="submit"]');
+                
+                if (show) {
+                    spinner.style.display = 'inline-block';
+                    submitBtn.disabled = true;
+                } else {
+                    spinner.style.display = 'none';
+                    submitBtn.disabled = false;
+                }
+            }
+
+            /**
+             * Menampilkan pesan error dengan toast
+             */
+            showError(message) {
+                // Create toast element
+                const toast = document.createElement('div');
+                toast.className = 'toast align-items-center text-white bg-danger border-0 position-fixed';
+                toast.style.cssText = 'top: 100px; right: 20px; z-index: 1055;';
+                toast.setAttribute('role', 'alert');
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `;
+
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+
+                // Remove toast after it's hidden
+                toast.addEventListener('hidden.bs.toast', () => {
+                    document.body.removeChild(toast);
+                });
+            }
+
+            /**
+             * Menampilkan pesan sukses dengan toast
+             */
+            showSuccess(message) {
+                const toast = document.createElement('div');
+                toast.className = 'toast align-items-center text-white bg-success border-0 position-fixed';
+                toast.style.cssText = 'top: 100px; right: 20px; z-index: 1055;';
+                toast.setAttribute('role', 'alert');
+                toast.innerHTML = `
+                    <div class="d-flex">
+                        <div class="toast-body">
+                            <i class="fas fa-check-circle me-2"></i>
+                            ${message}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                    </div>
+                `;
+
+                document.body.appendChild(toast);
+                const bsToast = new bootstrap.Toast(toast);
+                bsToast.show();
+
+                toast.addEventListener('hidden.bs.toast', () => {
+                    document.body.removeChild(toast);
+                });
+            }
+        }
+
+        // CSS untuk animasi fade-in
+        const style = document.createElement('style');
+        style.textContent = `
+            .fade-in {
+                animation: fadeIn 0.5s ease-in-out forwards;
+            }
+            
+            @keyframes fadeIn {
+                from { 
+                    opacity: 0; 
+                    transform: translateY(10px); 
+                }
+                to { 
+                    opacity: 1; 
+                    transform: translateY(0); 
+                }
+            }
+            
+            .result-display {
+                transition: all 0.3s ease;
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Inisialisasi aplikasi ketika DOM sudah siap
+        document.addEventListener('DOMContentLoaded', function() {
+            // Inisialisasi Temperature Converter
+            const temperatureApp = new TemperatureConverter();
+            
+            // Update navbar active state on scroll
+            window.addEventListener('scroll', function() {
+                const sections = document.querySelectorAll('section[id]');
+                const navLinks = document.querySelectorAll('.nav-link');
+                
+                let current = '';
+                const navbarHeight = document.querySelector('.navbar').offsetHeight;
+                
+                sections.forEach(section => {
+                    const sectionTop = section.offsetTop - navbarHeight - 50;
+                    const sectionHeight = section.offsetHeight;
+                    if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+                        current = section.getAttribute('id');
+                    }
+                });
+                
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === '#' + current) {
+                        link.classList.add('active');
+                    }
+                });
+            });
+
+            console.log('🌡️ Temperature Converter Pro berhasil diinisialisasi!');
+            console.log('📊 Fitur yang tersedia:');
+            console.log('   ✓ Konversi Celsius, Fahrenheit, Kelvin');
+            console.log('   ✓ Validasi input dan error handling');
+            console.log('   ✓ Riwayat konversi');
+            console.log('   ✓ Auto-conversion saat mengetik');
+            console.log('   ✓ Responsive design dengan Bootstrap');
+            console.log('   ✓ Smooth scrolling navigation');
+        });
+    </script>
+</body>
+</html>
